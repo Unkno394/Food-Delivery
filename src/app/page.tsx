@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
-  FaBowlFood, FaDrumstickBite, FaCarrot, FaIceCream, FaMugHot, FaCookie, FaBurger, FaPizzaSlice, FaFish, FaBacon, FaLeaf, FaUtensils, FaCartShopping
+  FaBowlFood, FaDrumstickBite, FaCarrot, FaIceCream, FaMugHot, FaCookie, 
+  FaBurger, FaPizzaSlice, FaFish, FaBacon, FaLeaf, FaUtensils, FaCartShopping 
 } from "react-icons/fa6";
-import { useRouter } from "next/navigation"; // Добавил для навигации
+import { useRouter } from "next/navigation";
 
 import CafeSelector from "@/components/CafeSelector/CafeSelector";
 import CategorySelector from "@/components/CategorySelector/CategorySelector";
@@ -14,12 +15,15 @@ import CartSummary from "@/components/Cart/CartSummary";
 import CheckoutButton from "@/components/Cart/CheckoutButton";
 
 export default function Home() {
-  const router = useRouter(); // Для навигации
+  const router = useRouter();
   const [activeCafeId, setActiveCafeId] = useState<number>(1);
   const [activeCategoryId, setActiveCategoryId] = useState<number>(1);
   const [cart, setCart] = useState<{ [key: number]: number }>({});
   const [selectedDish, setSelectedDish] = useState<null | typeof dishes[0]>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const rotation = useRef(0); // текущий угол вращения в градусах
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const cafes = Array.from({ length: 12 }).map((_, i) => ({ id: i + 1, name: `кафе ${i + 1}` }));
 
@@ -38,125 +42,72 @@ export default function Home() {
     { id: 12, name: "Паста", icon: <FaUtensils /> },
   ];
 
-  // ОБНОВЛЕННЫЕ ДАННЫЕ С ТЕГАМИ "КОМУ ПОДХОДИТ"
   const dishes = [
-    { 
-      id: 1, 
-      name: "Борщ украинский", 
-      description: "С говядиной, сметаной и зеленью", 
-      price: 450, 
-      categoryId: 1,
-      composition: ["Говядина", "Свекла", "Капуста", "Картофель", "Морковь", "Лук", "Сметана", "Зелень"],
-      suitableFor: ["Не подходит веганам", "Не подходит вегетарианцам", "Аллергены: лактоза"]
-    },
-    { 
-      id: 2, 
-      name: "Стейк Рибай", 
-      description: "С овощами гриль и соусом пеперони", 
-      price: 1200, 
-      categoryId: 10,
-      composition: ["Говядина рибай", "Овощи гриль", "Соус пеперони", "Специи"],
-      suitableFor: ["Не подходит веганам", "Не подходит вегетарианцам", "Аллергены: глютен"]
-    },
-    { 
-      id: 3, 
-      name: "Цезарь с курицей", 
-      description: "С соусом цезарь и пармезаном", 
-      price: 550, 
-      categoryId: 3,
-      composition: ["Куриная грудка", "Салат айсберг", "Пармезан", "Сухарики", "Соус цезарь"],
-      suitableFor: ["Не подходит веганам", "Не подходит вегетарианцам", "Аллергены: лактоза, глютен"]
-    },
-    { 
-      id: 4, 
-      name: "Тирамису", 
-      description: "Итальянский десерт", 
-      price: 350, 
-      categoryId: 4,
-      composition: ["Сыр маскарпоне", "Печенье савоярди", "Кофе", "Какао", "Яйца", "Сахар"],
-      suitableFor: ["Не подходит веганам", "Не подходит вегетарианцам", "Аллергены: лактоза, глютен, яйца"]
-    },
-    { 
-      id: 5, 
-      name: "Пицца Маргарита", 
-      description: "Моцарелла, томаты, базилик", 
-      price: 650, 
-      categoryId: 8,
-      composition: ["Тесто для пиццы", "Сыр моцарелла", "Томаты", "Соус томатный", "Базилик", "Оливковое масло"],
-      suitableFor: ["Подходит вегетарианцам", "Не подходит веганам", "Аллергены: лактоза, глютен"]
-    },
-    { 
-      id: 6, 
-      name: "Сет Калифорния", 
-      description: "8 роллов с лососем и авокадо", 
-      price: 850, 
-      categoryId: 9,
-      composition: ["Рис", "Нори", "Лосось", "Авокадо", "Огурец", "Кунжут", "Соус"],
-      suitableFor: ["Не подходит веганам", "Не подходит вегетарианцам", "Аллергены: рыба, соевый соус"]
-    },
-    { 
-      id: 7, 
-      name: "Бургер Чизбургер", 
-      description: "Говяжья котлета, сыр, овощи", 
-      price: 480, 
-      categoryId: 7,
-      composition: ["Булочка", "Говяжья котлета", "Сыр чеддер", "Помидор", "Лук", "Салат", "Соус"],
-      suitableFor: ["Не подходит веганам", "Не подходит вегетарианцам", "Аллергены: лактоза, глютен"]
-    },
-    { 
-      id: 8, 
-      name: "Лазанья", 
-      description: "С мясным соусом бешамель", 
-      price: 520, 
-      categoryId: 12,
-      composition: ["Листы для лазаньи", "Фарш говяжий", "Сыр", "Томатный соус", "Соус бешамель", "Специи"],
-      suitableFor: ["Не подходит веганам", "Не подходит вегетарианцам", "Аллергены: лактоза, глютен"]
-    },
+    { id: 1, name: "Борщ украинский", description: "С говядиной, сметаной и зеленью", price: 450, categoryId: 1 },
+    { id: 2, name: "Стейк Рибай", description: "С овощами гриль и соусом пеперони", price: 1200, categoryId: 10 },
+    { id: 3, name: "Цезарь с курицей", description: "С соусом цезарь и пармезаном", price: 550, categoryId: 3 },
+    { id: 4, name: "Тирамису", description: "Итальянский десерт", price: 350, categoryId: 4 },
+    { id: 5, name: "Пицца Маргарита", description: "Моцарелла, томаты, базилик", price: 650, categoryId: 8 },
+    { id: 6, name: "Сет Калифорния", description: "8 роллов с лососем и авокадо", price: 850, categoryId: 9 },
+    { id: 7, name: "Бургер Чизбургер", description: "Говяжья котлета, сыр, овощи", price: 480, categoryId: 7 },
+    { id: 8, name: "Лазанья", description: "С мясным соусом бешамель", price: 520, categoryId: 12 },
   ];
 
   const handleCafeClick = (id: number) => setActiveCafeId(id);
   const handleCategoryClick = (id: number) => setActiveCategoryId(id);
-
-
-  const navigateToFortuneWheel = () => {
-    router.push("/FortuneWheel");
+  const navigateToFortuneWheel = () => router.push("/FortuneWheel");
+  const addToCart = (dishId: number) => setCart(prev => ({ ...prev, [dishId]: (prev[dishId] || 0) + 1 }));
+  const removeFromCart = (dishId: number) => {
+    const copy = { ...cart };
+    if (!copy[dishId]) return copy;
+    if (copy[dishId] > 1) copy[dishId]--;
+    else delete copy[dishId];
+    setCart(copy);
   };
-
-  const addToCart = (dishId: number) =>
-    setCart(prev => ({ ...prev, [dishId]: (prev[dishId] || 0) + 1 }));
-
-  const removeFromCart = (dishId: number) =>
-    setCart(prev => {
-      const copy = { ...prev };
-      if (!copy[dishId]) return copy;
-      if (copy[dishId] > 1) copy[dishId]--;
-      else delete copy[dishId];
-      return copy;
-    });
 
   const totalItems = Object.values(cart).reduce((s, v) => s + v, 0);
+  const totalPrice = dishes.filter(d => !!cart[d.id]).reduce((sum, d) => sum + d.price * (cart[d.id] || 0), 0);
+  const filteredDishes = activeCategoryId === 1 ? dishes : dishes.filter(d => d.categoryId === activeCategoryId);
 
-  const totalPrice = dishes
-    .filter(d => !!cart[d.id])
-    .reduce((sum, d) => sum + d.price * (cart[d.id] || 0), 0);
+  const handleDishClick = (dish: typeof dishes[0]) => { setSelectedDish(dish); setIsModalOpen(true); };
+  const handleCloseModal = () => { setIsModalOpen(false); setSelectedDish(null); };
 
-  const filteredDishes = activeCategoryId === 1
-    ? dishes
-    : dishes.filter(d => d.categoryId === activeCategoryId);
+  // ===== Анимация колеса с 6 оборотами =====
+  useEffect(() => {
+    const totalRotation = 360 * 6; // 6 полных оборотов
+    const duration = 10000; // 10 секунд
+    let startTime: number | null = null;
+    let animationFrame: number;
 
-  const handleDishClick = (dish: typeof dishes[0]) => {
-    setSelectedDish(dish);
-    setIsModalOpen(true);
-  };
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedDish(null);
-  };
+    const animate = (time: number) => {
+      if (!startTime) startTime = time;
+      const elapsed = time - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = easeOutCubic(t);
+      rotation.current = totalRotation * eased;
+      if (imgRef.current) imgRef.current.style.transform = `rotate(${rotation.current}deg)`;
+
+      if (t < 1) {
+        animationFrame = requestAnimationFrame(animate);
+      } else {
+        // Возвращаем колесо на исходное положение
+        rotation.current = 0;
+        if (imgRef.current) imgRef.current.style.transform = `rotate(0deg)`;
+        // Запускаем снова через минуту
+        setTimeout(() => requestAnimationFrame((t) => animate(t)), 60000);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrame);
+  }, []);
 
   return (
     <div className="relative w-full min-h-screen bg-[#130F30] overflow-x-hidden">
 
+      {/* Фоны */}
       <div className="absolute bg-[#A020F0] blur-[200px] opacity-40 rounded-full w-[120%] h-[50%] top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-90" />
       <div className="absolute bg-[#A020F0] blur-[150px] opacity-40 rounded-full w-[80%] h-[60%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
 
@@ -166,63 +117,44 @@ export default function Home() {
             <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">Food Delivery</h1>
             <p className="text-gray-300 text-sm md:text-base">Выберите категорию и блюдо</p>
           </div>
-          
-          {/* Кнопка колеса фортуны с картинкой */}
+
+          {/* Колесо фортуны */}
           <button
             onClick={navigateToFortuneWheel}
-            className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#8B23CB]/50 to-[#A020F0]/50 hover:from-[#8B23CB]/70 hover:to-[#A020F0]/70 border border-white/20 backdrop-blur-md transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl group overflow-hidden"
-            aria-label="Колесо фортуны"
-            title="Колесо фортуны"
+            className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#8B23CB]/50 to-[#A020F0]/50 border border-white/20 backdrop-blur-md shadow-lg overflow-hidden"
           >
-            {/* Картинка колеса фортуны из public */}
-            <img 
-              src="/image.png" 
-              alt="Колесо фортуны" 
-              className="w-8 h-8 object-contain group-hover:animate-spin transition-transform duration-700"
-            />
+            <img ref={imgRef} src="/image.png" alt="Колесо фортуны" className="w-8 h-8 object-contain" />
           </button>
         </div>
 
         <div className="px-4 md:px-6 py-4">
           <h2 className="text-white text-base md:text-lg font-semibold mb-3">Названия заведений</h2>
           <div className="flex overflow-x-auto pb-4 scrollbar-hide">
-            {CafeSelector ? (
-              <CafeSelector cafes={cafes} activeCafeId={activeCafeId} onCafeClick={handleCafeClick} />
-            ) : (
-              <div className="text-white">Компонент CafeSelector не найден</div>
-            )}
+            <CafeSelector cafes={cafes} activeCafeId={activeCafeId} onCafeClick={handleCafeClick} />
           </div>
         </div>
 
         <div className="px-4 md:px-6">
           <h2 className="text-white text-base md:text-lg font-semibold mb-3">Категории блюд</h2>
           <div className="flex overflow-x-auto pb-2 scrollbar-hide">
-            {CategorySelector ? (
-              <CategorySelector categories={categories} activeCategoryId={activeCategoryId} onCategoryClick={handleCategoryClick} />
-            ) : (
-              <div className="text-white">Компонент CategorySelector не найден</div>
-            )}
+            <CategorySelector categories={categories} activeCategoryId={activeCategoryId} onCategoryClick={handleCategoryClick} />
           </div>
         </div>
 
         <div className="px-4 md:px-6 pt-4 pb-[180px]">
           <h3 className="text-white text-lg md:text-xl font-semibold mb-4">Меню кафе</h3>
-          {MenuSection ? (
-            <MenuSection 
-              dishes={filteredDishes} 
-              cart={cart} 
-              addToCart={addToCart} 
-              removeFromCart={removeFromCart}
-              onDishClick={handleDishClick}
-            />
-          ) : (
-            <div className="text-white">Компонент MenuSection не найден</div>
-          )}
+          <MenuSection 
+            dishes={filteredDishes} 
+            cart={cart} 
+            addToCart={addToCart} 
+            removeFromCart={removeFromCart}
+            onDishClick={handleDishClick}
+          />
         </div>
       </div>
 
-      <div
-        style={{
+      {/* Фиксированное меню корзины */}
+      <div style={{
           position: "fixed",
           left: 0,
           right: 0,
@@ -232,8 +164,7 @@ export default function Home() {
           backdropFilter: "blur(20px)",
           WebkitBackdropFilter: "blur(20px)",
           background: "rgba(255, 255, 255, 0.05)",
-        }}
-      >
+      }}>
         <div className="max-w-2xl mx-auto bg-[#7B6F9C]/30 border border-white/10 backdrop-blur-xl rounded-xl p-4 shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -247,7 +178,7 @@ export default function Home() {
               </div>
               <CartSummary totalItems={totalItems} totalPrice={totalPrice} />
             </div>
-            <CheckoutButton disabled={totalItems === 0} />
+                <CheckoutButton disabled={totalItems === 0} onClick={() => router.push('/order')} />
           </div>
         </div>
       </div>

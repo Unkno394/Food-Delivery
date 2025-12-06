@@ -32,7 +32,6 @@ export default function FortuneWheel() {
 
   const isSpinningRef = useRef(false);
   const gradientShift = useRef(0);
-  const glowPulse = useRef(0);
   const currentAngle = useRef(0);
 
   const dishes = mockDishes;
@@ -40,6 +39,7 @@ export default function FortuneWheel() {
   const arc = (2 * Math.PI) / numberOfItems;
   const baseColors = ["#9d4edd", "#7b2cbf", "#8a2be2", "#6a0dad"];
 
+  // Проверка на доступность вращения
   useEffect(() => {
     const lastSpin = localStorage.getItem("lastSpin");
     if (lastSpin) {
@@ -78,6 +78,7 @@ export default function FortuneWheel() {
 
     ctx.clearRect(0, 0, width, height);
 
+    // --- 1. Рисуем сектора ---
     for (let i = 0; i < numberOfItems; i++) {
       const startAngle = angle + i * arc;
       let color = baseColors[i % baseColors.length];
@@ -111,6 +112,7 @@ export default function FortuneWheel() {
       ctx.lineWidth = 2;
       ctx.stroke();
 
+      // Название блюда
       ctx.save();
       ctx.translate(centerX, centerY);
       ctx.rotate(startAngle + arc / 2);
@@ -121,17 +123,35 @@ export default function FortuneWheel() {
       ctx.restore();
     }
 
-    ctx.save();
+    // --- 2. Рисуем лампочки поверх секторов ---
+    for (let i = 0; i < numberOfItems; i++) {
+      const startAngle = angle + i * arc;
+      const bulbX = centerX + Math.cos(startAngle) * radius;
+      const bulbY = centerY + Math.sin(startAngle) * radius;
+      const pulse = 0.7 + 0.3 * Math.sin(performance.now() / 300 + i);
+
+      ctx.beginPath();
+      ctx.arc(bulbX, bulbY, 10, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.15 * pulse})`;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(bulbX, bulbY, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255, 210, 255, ${0.7 + 0.3 * pulse})`;
+      ctx.fill();
+    }
+
+    // --- 3. Центральная лампочка ---
+    const centerPulse = 0.6 + 0.4 * Math.sin(performance.now() / 400);
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-    const blur = 20 + glowPulse.current * 15;
-    const alpha = 0.15 + glowPulse.current * 0.1;
-    ctx.shadowColor = "#9d4edd";
-    ctx.shadowBlur = blur;
-    ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-    ctx.lineWidth = 6;
-    ctx.stroke();
-    ctx.restore();
+    ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.2 * centerPulse})`;
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 6, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 200, 255, ${0.8 * centerPulse})`;
+    ctx.fill();
   };
 
   useEffect(() => {
@@ -143,9 +163,6 @@ export default function FortuneWheel() {
     const animate = () => {
       if (isSpinningRef.current) {
         gradientShift.current += 0.02;
-        glowPulse.current = 0.5 + 0.5 * Math.sin(performance.now() / 500);
-      } else {
-        glowPulse.current = 0.05 + 0.05 * Math.sin(performance.now() / 3000);
       }
       drawWheel(ctx, currentAngle.current, isSpinningRef.current);
       animationFrame = requestAnimationFrame(animate);
@@ -169,7 +186,6 @@ export default function FortuneWheel() {
 
     const duration = 5000;
     const startAngle = currentAngle.current;
-
     const randomRotation = Math.random() * 2 * Math.PI + 5 * 2 * Math.PI;
     const endAngle = startAngle + randomRotation;
     const startTime = performance.now();
@@ -205,6 +221,7 @@ export default function FortuneWheel() {
 
   return (
     <div className="relative w-full min-h-screen flex flex-col items-center justify-center p-4 bg-[#130F30] overflow-x-hidden">
+      {/* Фоновые блуры */}
       <div className="absolute bg-[#A020F0] blur-[250px] opacity-40 rounded-full w-[140%] h-[60%] top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-90 pointer-events-none" />
       <div className="absolute bg-[#A020F0] blur-[180px] opacity-40 rounded-full w-[90%] h-[70%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 
@@ -243,7 +260,6 @@ export default function FortuneWheel() {
           <p className="text-3xl font-bold">{selectedDish.name}</p>
           <p className="text-sm opacity-80">{selectedDish.price} ₽</p>
 
-          {/* Состав */}
           {selectedDish.composition && selectedDish.composition.length > 0 && (
             <div className="mt-4 text-left w-full">
               <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
@@ -260,7 +276,6 @@ export default function FortuneWheel() {
             </div>
           )}
 
-          {/* Кому подходит с иконками */}
           {selectedDish.suitableFor && selectedDish.suitableFor.length > 0 && (
             <div className="mt-4 text-left w-full">
               <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
@@ -288,12 +303,12 @@ export default function FortuneWheel() {
             </div>
           )}
 
-          <button
-            onClick={() => alert(`Оформление заказа: ${selectedDish.name}`)}
-            className="flex items-center justify-center px-8 py-3 rounded-xl bg-gradient-to-br from-[#8B23CB] to-[#A020F0] hover:from-[#8B23CB]/90 hover:to-[#A020F0]/90 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 text-white font-bold mt-4"
-          >
-            <FaCartShopping className="mr-2" /> Оформить заказ
-          </button>
+         <button
+  onClick={() => window.location.href = '/'}
+  className="flex items-center justify-center px-8 py-3 rounded-xl bg-gradient-to-br from-[#8B23CB] to-[#A020F0] hover:from-[#8B23CB]/90 hover:to-[#A020F0]/90 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 text-white font-bold mt-4"
+>
+  <FaCartShopping className="mr-2" /> Добавить в корзину
+</button>
         </div>
       )}
     </div>

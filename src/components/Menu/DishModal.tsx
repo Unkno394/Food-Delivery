@@ -28,7 +28,7 @@ const DishModal: React.FC<DishModalProps> = ({
   onClose,
   cart,
   addToCart,
-  removeFromCart
+  removeFromCart,
 }) => {
   if (!isOpen) return null;
 
@@ -49,10 +49,18 @@ const DishModal: React.FC<DishModalProps> = ({
 
   // Разделяем suitableFor на три категории
   const getSuitabilityInfo = () => {
-    const veganInfo = dish.suitableFor?.find(item => item.toLowerCase().includes("веган")) || "Нет данных";
-    const vegetarianInfo = dish.suitableFor?.find(item => item.toLowerCase().includes("вегетариан")) || "Нет данных";
-    const allergenInfo = dish.suitableFor?.find(item => item.toLowerCase().includes("аллерген")) || "Нет данных";
-    
+    const veganInfo =
+      dish.suitableFor?.find((item) =>
+        item.toLowerCase().includes("веган")
+      ) || "";
+    const vegetarianInfo =
+      dish.suitableFor?.find((item) =>
+        item.toLowerCase().includes("вегетариан")
+      ) || "";
+    const allergenInfo =
+      dish.suitableFor?.find((item) =>
+        item.toLowerCase().includes("аллерген")
+      ) || "";
     return { veganInfo, vegetarianInfo, allergenInfo };
   };
 
@@ -75,9 +83,7 @@ const DishModal: React.FC<DishModalProps> = ({
         {/* Изображение блюда */}
         <div className="h-48 bg-gradient-to-r from-[#8B23CB]/20 to-[#A020F0]/20 rounded-t-2xl flex items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-[#8B23CB]/10 to-[#A020F0]/10" />
-          <div className="relative text-white text-7xl opacity-30">
-            🍽️
-          </div>
+          <div className="relative text-white text-7xl opacity-30">🍽️</div>
           {/* Бейдж цены */}
           <div className="absolute bottom-4 right-4 bg-gradient-to-r from-[#8B23CB] to-[#A020F0] px-4 py-2 rounded-lg shadow-lg">
             <span className="text-white font-bold text-xl">{dish.price} ₽</span>
@@ -111,46 +117,73 @@ const DishModal: React.FC<DishModalProps> = ({
             </div>
           )}
 
-          {/* Три категории "Кому подходит" */}
-          <div className="mb-6">
-            <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 bg-gradient-to-r from-[#8B23CB] to-[#A020F0] rounded-full"></span>
-              Кому подходит:
-            </h3>
-            
-            {/* Веганы */}
-            <div className="mb-3 p-3 rounded-lg bg-white/5 border border-white/10">
-              <div className="flex items-center gap-2 mb-1">
-                <FaLeaf className="text-green-400" />
-                <span className="text-white font-medium">Веганам:</span>
-              </div>
-              <p className={`text-sm ${veganInfo.includes("Не подходит") ? "text-red-300" : veganInfo.includes("Подходит") ? "text-green-300" : "text-gray-400"}`}>
-                {veganInfo}
-              </p>
-            </div>
+          {/* Кому подходит */}
+          {(veganInfo || vegetarianInfo || allergenInfo) && (
+            <div className="mb-6">
+              <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 bg-gradient-to-r from-[#8B23CB] to-[#A020F0] rounded-full"></span>
+                Кому подходит:
+              </h3>
 
-            {/* Вегетарианцам */}
-            <div className="mb-3 p-3 rounded-lg bg-white/5 border border-white/10">
-              <div className="flex items-center gap-2 mb-1">
-                <FaSeedling className="text-green-500" />
-                <span className="text-white font-medium">Вегетарианцам:</span>
-              </div>
-              <p className={`text-sm ${vegetarianInfo.includes("Не подходит") ? "text-red-300" : vegetarianInfo.includes("Подходит") ? "text-green-300" : "text-gray-400"}`}>
-                {vegetarianInfo}
-              </p>
-            </div>
+              {veganInfo && (
+                <div className="mb-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FaLeaf className="text-green-400" />
+                    <span className="text-white font-medium">Веганам:</span>
+                  </div>
+                  <p
+                    className={`text-sm ${
+                      veganInfo.includes("Не подходит")
+                        ? "text-red-300"
+                        : veganInfo.includes("Подходит")
+                        ? "text-green-300"
+                        : "text-gray-400"
+                    }`}
+                  >
+                    {veganInfo}
+                  </p>
+                </div>
+              )}
 
-            {/* Аллергены */}
-            <div className="p-3 rounded-lg bg-white/5 border border-white/10">
-              <div className="flex items-center gap-2 mb-1">
-                <FaExclamation className="text-yellow-400" />
-                <span className="text-white font-medium">Аллергены:</span>
-              </div>
-              <p className={`text-sm ${allergenInfo.includes("Нет данных") ? "text-gray-400" : "text-yellow-300"}`}>
-                {allergenInfo}
-              </p>
+              {vegetarianInfo && (
+                <div className="mb-3 p-3 rounded-lg bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FaSeedling className="text-green-500" />
+                    <span className="text-white font-medium">Вегетарианцам:</span>
+                  </div>
+                  <p
+                    className={`text-sm ${
+                      vegetarianInfo.includes("Не подходит")
+                        ? "text-red-300"
+                        : vegetarianInfo.includes("Подходит")
+                        ? "text-green-300"
+                        : "text-gray-400"
+                    }`}
+                  >
+                    {vegetarianInfo}
+                  </p>
+                </div>
+              )}
+
+              {allergenInfo && (
+                <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-2 mb-1">
+                    <FaExclamation className="text-yellow-400" />
+                    <span className="text-white font-medium">Аллергены:</span>
+                  </div>
+                  <p
+                    className={`text-sm ${
+                      allergenInfo.includes("Нет данных")
+                        ? "text-gray-400"
+                        : "text-yellow-300"
+                    }`}
+                  >
+                    {allergenInfo}
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {/* Разделитель */}
           <div className="border-t border-white/10 my-6"></div>
@@ -184,7 +217,7 @@ const DishModal: React.FC<DishModalProps> = ({
                   onClick={() => addToCart(dish.id)}
                   className="px-6 py-3 bg-gradient-to-r from-[#8B23CB] to-[#A020F0] rounded-lg text-white font-medium hover:opacity-90 transition-opacity flex items-center gap-2"
                 >
-                  <span>+ Добавить в корзину</span>
+                  + Добавить в корзину
                 </button>
               )}
             </div>
