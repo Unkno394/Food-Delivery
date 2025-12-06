@@ -1,4 +1,3 @@
-// app/api/suggest/route.ts
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q');
@@ -8,10 +7,7 @@ export async function GET(request: Request) {
   }
   
   try {
-    // Попробуем использовать DaData API (работает из браузера с CORS)
     const DADATA_API_KEY = "ваш_ключ_dadata_или_просто_используем_OpenStreetMap";
-    
-    // Используем OpenStreetMap Nominatim (бесплатно, работает без API ключа)
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=7&countrycodes=ru&accept-language=ru`,
       {
@@ -28,11 +24,9 @@ export async function GET(request: Request) {
     
     const data = await response.json();
     
-    // Форматируем результаты
     const suggestions = data.map((item: any) => {
       const address = item.address || {};
-      
-      // Формируем читаемый адрес
+ 
       let title = '';
       if (address.road) {
         title = address.road;
@@ -55,13 +49,11 @@ export async function GET(request: Request) {
       };
     }).filter((item: any) => item.title);
     
-    // Добавляем локальные подсказки, если OSM вернул мало результатов
     if (suggestions.length < 3) {
       const localSuggestions = getLocalSuggestions(query);
       suggestions.push(...localSuggestions.slice(0, 3 - suggestions.length));
     }
-    
-    // Убираем дубликаты
+
     const uniqueSuggestions = suggestions.filter((item: any, index: number, self: any[]) =>
       index === self.findIndex((t: any) => t.fullAddress === item.fullAddress)
     );
@@ -70,8 +62,6 @@ export async function GET(request: Request) {
     
   } catch (error) {
     console.error('API error:', error);
-    
-    // Всегда возвращаем локальные подсказки при ошибке
     const localSuggestions = getLocalSuggestions(query || '');
     return Response.json({ 
       results: localSuggestions,
@@ -79,8 +69,6 @@ export async function GET(request: Request) {
     });
   }
 }
-
-// Функция для локальных подсказок
 function getLocalSuggestions(query: string): any[] {
   const localSuggestions = [
     { 

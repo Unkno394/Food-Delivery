@@ -39,7 +39,6 @@ export default function FortuneWheel() {
   const arc = (2 * Math.PI) / numberOfItems;
   const baseColors = ["#9d4edd", "#7b2cbf", "#8a2be2", "#6a0dad"];
 
-  // Проверка на доступность вращения
   useEffect(() => {
     const lastSpin = localStorage.getItem("lastSpin");
     if (lastSpin) {
@@ -78,7 +77,6 @@ export default function FortuneWheel() {
 
     ctx.clearRect(0, 0, width, height);
 
-    // --- 1. Рисуем сектора ---
     for (let i = 0; i < numberOfItems; i++) {
       const startAngle = angle + i * arc;
       let color = baseColors[i % baseColors.length];
@@ -112,7 +110,6 @@ export default function FortuneWheel() {
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Название блюда
       ctx.save();
       ctx.translate(centerX, centerY);
       ctx.rotate(startAngle + arc / 2);
@@ -123,7 +120,6 @@ export default function FortuneWheel() {
       ctx.restore();
     }
 
-    // --- 2. Рисуем лампочки поверх секторов ---
     for (let i = 0; i < numberOfItems; i++) {
       const startAngle = angle + i * arc;
       const bulbX = centerX + Math.cos(startAngle) * radius;
@@ -141,7 +137,6 @@ export default function FortuneWheel() {
       ctx.fill();
     }
 
-    // --- 3. Центральная лампочка ---
     const centerPulse = 0.6 + 0.4 * Math.sin(performance.now() / 400);
     ctx.beginPath();
     ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
@@ -221,7 +216,6 @@ export default function FortuneWheel() {
 
   return (
     <div className="relative w-full min-h-screen flex flex-col items-center justify-center p-4 bg-[#130F30] overflow-x-hidden">
-      {/* Фоновые блуры */}
       <div className="absolute bg-[#A020F0] blur-[250px] opacity-40 rounded-full w-[140%] h-[60%] top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-90 pointer-events-none" />
       <div className="absolute bg-[#A020F0] blur-[180px] opacity-40 rounded-full w-[90%] h-[70%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
 

@@ -16,7 +16,7 @@ interface MenuSectionProps {
   cart: { [key: number]: number };
   addToCart: (dishId: number) => void;
   removeFromCart: (dishId: number) => void;
-  onDishClick: (dish: Dish) => void; // ← Новая пропса
+  onDishClick: (dish: Dish) => void;
 }
 
 const MenuSection: React.FC<MenuSectionProps> = ({ 
@@ -31,7 +31,7 @@ const MenuSection: React.FC<MenuSectionProps> = ({
       <div 
         key={dish.id}
         className="relative bg-[#7B6F9C]/20 rounded-[12px] p-4 transition-all duration-300 hover:bg-[#7B6F9C]/30 backdrop-blur-sm border border-white/5 cursor-pointer"
-        onClick={() => onDishClick(dish)} // ← Клик на всю карточку
+        onClick={() => onDishClick(dish)} 
       >
         <div className="flex justify-between items-start">
           <div className="flex-1">
@@ -42,7 +42,7 @@ const MenuSection: React.FC<MenuSectionProps> = ({
               {cart[dish.id] ? (
                 <div 
                   className="flex items-center gap-3"
-                  onClick={(e) => e.stopPropagation()} // ← Чтобы не открывалась модалка при клике на кнопки
+                  onClick={(e) => e.stopPropagation()}
                 >
                   <button 
                     onClick={() => removeFromCart(dish.id)}
@@ -63,7 +63,7 @@ const MenuSection: React.FC<MenuSectionProps> = ({
               ) : (
                 <button 
                   onClick={(e) => {
-                    e.stopPropagation(); // ← Останавливаем всплытие
+                    e.stopPropagation();
                     addToCart(dish.id);
                   }}
                   className="px-4 py-2 bg-white/20 rounded-lg text-white text-sm font-medium hover:bg-white/30 transition-colors flex items-center gap-2"

@@ -9,7 +9,8 @@ import DeliveryTimeSelector from "@/components/Order/DeliveryTimeSelector";
 import PaymentMethod from "@/components/Order/PaymentMethod";
 import ErrorMessage from "@/components/UI/ErrorMessage";
 import ActionButtons from "@/components/UI/ActionButtons";
-import { getAddressFromYandex, getLocationByIP, YANDEX_GEOCODER_API_KEY } from "@/components/Order/geocoder";
+import { getAddressFromYandex, getLocationByIP } from "@/components/Order/geocoder";
+import { useAlert } from "@/components/UI/CustomAlert";
 
 export default function Home() {
   const router = useRouter();
@@ -33,14 +34,12 @@ export default function Home() {
   const timeDropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Сохраненные адреса
   const savedAddresses = [
     "ул. Ленина, д. 15, кв. 42, Москва",
     "пр. Победы, д. 28, офис 305, Санкт-Петербург",
     "ул. Мира, д. 7, подъезд 3, Екатеринбург"
   ];
 
-  // Опции времени доставки
   const timeOptions = [
     { value: "Сейчас", label: "Сейчас", icon: "⚡" },
     { value: "30 минут", label: "Через 30 минут", icon: "⏱️" },
@@ -49,7 +48,6 @@ export default function Home() {
     { value: "2 часа", label: "Через 2 часа", icon: "🕑" }
   ];
 
-  // Функция для получения подсказок
   const fetchSuggestions = async (query: string) => {
     if (query.length < 2) {
       setAddressSuggestions([]);
@@ -82,7 +80,6 @@ export default function Home() {
     }
   };
 
-  // Дебаунс для поиска
   const debouncedSearch = (query: string) => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
@@ -93,7 +90,6 @@ export default function Home() {
     }, 300);
   };
 
-  // Обновляем подсказки при изменении адреса
   useEffect(() => {
     if (address.length >= 2) {
       debouncedSearch(address);
@@ -110,14 +106,11 @@ export default function Home() {
     };
   }, [address]);
 
-  // Функция для получения местоположения
   const getCurrentLocation = async () => {
     setLocationError(null);
     setIsGettingLocation(true);
 
-    // Сначала пробуем быструю геолокацию через браузер
     if (!navigator.geolocation) {
-      // Fallback на IP-геолокацию
       const ipLocation = await getLocationByIP();
       if (ipLocation) {
         const addressText = await getAddressFromYandex(ipLocation.lat, ipLocation.lon);
@@ -129,7 +122,6 @@ export default function Home() {
       return;
     }
 
-    // Используем короткий таймаут и кэш
     const options: PositionOptions = {
       enableHighAccuracy: false,
       timeout: 5000,
@@ -158,7 +150,6 @@ export default function Home() {
     };
 
     const errorCallback = async (error: GeolocationPositionError) => {
-      // Fallback на IP-геолокацию
       const ipLocation = await getLocationByIP();
       if (ipLocation) {
         const addressText = await getAddressFromYandex(ipLocation.lat, ipLocation.lon);
@@ -193,7 +184,6 @@ export default function Home() {
     );
   };
 
-  // Загружаем последний адрес
   useEffect(() => {
     const savedLocation = localStorage.getItem('userLocation');
     if (savedLocation) {
@@ -206,15 +196,12 @@ export default function Home() {
     }
   }, []);
 
-  // Закрываем подсказки при клике вне поля
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Закрываем подсказки адреса
       if (addressInputRef.current && !addressInputRef.current.contains(event.target as Node)) {
         setShowSuggestions(false);
       }
       
-      // Закрываем выпадающее меню времени
       if (timeDropdownRef.current && !timeDropdownRef.current.contains(event.target as Node)) {
         setShowTimeDropdown(false);
       }
@@ -224,7 +211,6 @@ export default function Home() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Выбор адреса из подсказки
   const handleSelectSuggestion = (fullAddress: string) => {
     setAddress(fullAddress);
     setShowSuggestions(false);
@@ -235,7 +221,6 @@ export default function Home() {
     }));
   };
 
-  // Ручной поиск адреса
   const handleManualSearch = () => {
     if (address.length >= 2) {
       fetchSuggestions(address);
@@ -243,29 +228,26 @@ export default function Home() {
     }
   };
 
-  // Подтверждение заказа
+  const { showAlert, AlertComponent } = useAlert();
+
   const handleConfirmOrder = () => {
     if (!address.trim()) {
-      alert("Пожалуйста, укажите адрес доставки");
+      showAlert("Пожалуйста, укажите адрес доставки", "error");
       addressInputRef.current?.focus();
       return;
     }
     if (!fullName.trim()) {
-      alert("Пожалуйста, укажите ваше ФИО");
+      showAlert("Пожалуйста, укажите ваше ФИО", "error");
       return;
     }
-    
     const totalPrice = (burgerCount * 420) + (saladCount * 320) + (rollCount * 380);
-    
     localStorage.setItem('userLocation', JSON.stringify({
       address: address.trim(),
       timestamp: Date.now()
     }));
-    
-    alert(`✅ Заказ подтверждён!\n\n💰 Итого: ${totalPrice} ₽\n⏰ Доставка: ${deliveryTime}\n📍 Адрес: ${address}\n👤 ФИО: ${fullName}`);
+    showAlert(` Ваш заказ подтверждён!`, "success", 7000);
   };
 
-  // Увеличение/уменьшение количества
   const incrementBurger = () => setBurgerCount(prev => prev + 1);
   const decrementBurger = () => setBurgerCount(prev => prev > 1 ? prev - 1 : 1);
   const incrementSalad = () => setSaladCount(prev => prev + 1);
@@ -281,7 +263,7 @@ export default function Home() {
       <div className="absolute bg-[#A020F0] blur-[150px] opacity-40 rounded-full w-[80%] h-[60%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
 
       <div className="relative w-full md:w-[90%] min-h-screen mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-none md:rounded-2xl overflow-visible pb-32">
-        {/* Header */}
+  
         <div className="px-4 pt-6 md:px-6 pb-4">
           <div className="flex items-center gap-3 mb-6">
             <button 
@@ -305,9 +287,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Main Content */}
+       
         <div className="px-4 md:px-6">
-          {/* Menu Items */}
+   
           <div className="space-y-4 mb-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 bg-[#7B6F9C]/30 rounded-xl border border-white/10">
               <div className="flex-1">
@@ -376,16 +358,13 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Total Price */}
           <div className="mb-8 flex justify-end">
             <div className="px-6 py-4 bg-gradient-to-r from-[#8B23CB]/30 to-[#A020F0]/30 rounded-lg border border-white/10 inline-block">
               <p className="font-extrabold text-white text-xl md:text-2xl">Итого: {totalPrice} ₽</p>
             </div>
           </div>
 
-          {/* Delivery & Payment Info */}
           <div className="space-y-6 mb-20">
-            {/* Delivery Address */}
             <div className="space-y-4">
               <div className="px-4 py-2 bg-gradient-to-r from-[#8B23CB]/30 to-[#A020F0]/30 rounded-lg border border-white/10 inline-block">
                 <h4 className="font-bold text-white text-lg">Адрес доставки</h4>
@@ -397,7 +376,6 @@ export default function Home() {
                 </p>
               </div>
               
-              {/* AddressInput component */}
               <AddressInput
                 address={address}
                 onChange={(e) => setAddress(e.target.value)}
@@ -409,7 +387,6 @@ export default function Home() {
                 onSelectSuggestion={handleSelectSuggestion}
               />
               
-              {/* ActionButtons component */}
               <ActionButtons
                 onGetLocation={getCurrentLocation}
                 isGettingLocation={isGettingLocation}
@@ -417,12 +394,10 @@ export default function Home() {
                 showSavedAddresses={showSavedAddresses}
               />
               
-              {/* ErrorMessage component */}
               {locationError && (
                 <ErrorMessage message={locationError} />
               )}
 
-              {/* SavedAddresses component */}
               {showSavedAddresses && (
                 <SavedAddresses
                   savedAddresses={savedAddresses}
@@ -438,7 +413,6 @@ export default function Home() {
               )}
             </div>
 
-            {/* Delivery Time (component) */}
             <DeliveryTimeSelector
               deliveryTime={deliveryTime}
               setDeliveryTime={setDeliveryTime}
@@ -448,10 +422,8 @@ export default function Home() {
               timeDropdownRef={timeDropdownRef}
             />
 
-            {/* Payment Method (component) */}
             <PaymentMethod totalPrice={totalPrice} />
 
-            {/* Full Name */}
             <div className="space-y-3">
               <div className="px-4 py-2 bg-gradient-to-r from-[#8B23CB]/30 to-[#A020F0]/30 rounded-lg border border-white/10 inline-block">
                 <h4 className="font-bold text-white text-lg">ФИО</h4>
@@ -470,8 +442,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* Fixed Action Buttons */}
       <div className="fixed left-0 right-0 bottom-0 z-50 p-4 backdrop-blur-lg bg-gradient-to-t from-[#130F30] via-[#130F30]/95 to-transparent">
         <div className="max-w-2xl mx-auto bg-[#7B6F9C]/30 border border-white/10 backdrop-blur-xl rounded-xl p-4">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -497,6 +467,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <AlertComponent />
     </div>
   );
 }

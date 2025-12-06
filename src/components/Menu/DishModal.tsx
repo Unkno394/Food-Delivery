@@ -37,8 +37,6 @@ const DishModal: React.FC<DishModalProps> = ({
       onClose();
     }
   };
-
-  // Закрытие по ESC
   React.useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -47,7 +45,6 @@ const DishModal: React.FC<DishModalProps> = ({
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
-  // Разделяем suitableFor на три категории
   const getSuitabilityInfo = () => {
     const veganInfo =
       dish.suitableFor?.find((item) =>
@@ -72,7 +69,6 @@ const DishModal: React.FC<DishModalProps> = ({
       onClick={handleBackdropClick}
     >
       <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-gradient-to-b from-[#1E1B3A] to-[#130F30] rounded-2xl border border-white/10 shadow-2xl">
-        {/* Кнопка закрытия */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20 transition-colors"
@@ -80,24 +76,21 @@ const DishModal: React.FC<DishModalProps> = ({
           <FaXmark className="text-white text-lg" />
         </button>
 
-        {/* Изображение блюда */}
         <div className="h-48 bg-gradient-to-r from-[#8B23CB]/20 to-[#A020F0]/20 rounded-t-2xl flex items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-[#8B23CB]/10 to-[#A020F0]/10" />
           <div className="relative text-white text-7xl opacity-30">🍽️</div>
-          {/* Бейдж цены */}
+
           <div className="absolute bottom-4 right-4 bg-gradient-to-r from-[#8B23CB] to-[#A020F0] px-4 py-2 rounded-lg shadow-lg">
             <span className="text-white font-bold text-xl">{dish.price} ₽</span>
           </div>
         </div>
 
         <div className="p-6">
-          {/* Заголовок и описание */}
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-white mb-3">{dish.name}</h2>
             <p className="text-gray-300 text-sm leading-relaxed">{dish.description}</p>
           </div>
 
-          {/* Состав */}
           {dish.composition && dish.composition.length > 0 && (
             <div className="mb-6">
               <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
@@ -117,7 +110,6 @@ const DishModal: React.FC<DishModalProps> = ({
             </div>
           )}
 
-          {/* Кому подходит */}
           {(veganInfo || vegetarianInfo || allergenInfo) && (
             <div className="mb-6">
               <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
@@ -185,10 +177,8 @@ const DishModal: React.FC<DishModalProps> = ({
             </div>
           )}
 
-          {/* Разделитель */}
           <div className="border-t border-white/10 my-6"></div>
 
-          {/* Управление количеством в корзине */}
           <div className="flex items-center justify-between">
             <div>
               <span className="text-gray-300 text-sm">Добавить в корзину:</span>
@@ -222,8 +212,6 @@ const DishModal: React.FC<DishModalProps> = ({
               )}
             </div>
           </div>
-
-          {/* Кнопка "Добавить и закрыть" */}
           <div className="mt-6">
             <button
               onClick={() => {

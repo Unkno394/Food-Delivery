@@ -22,7 +22,7 @@ export default function Home() {
   const [selectedDish, setSelectedDish] = useState<null | typeof dishes[0]>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const rotation = useRef(0); // текущий угол вращения в градусах
+  const rotation = useRef(0);
   const imgRef = useRef<HTMLImageElement>(null);
 
   const cafes = Array.from({ length: 12 }).map((_, i) => ({ id: i + 1, name: `кафе ${i + 1}` }));
@@ -72,10 +72,9 @@ export default function Home() {
   const handleDishClick = (dish: typeof dishes[0]) => { setSelectedDish(dish); setIsModalOpen(true); };
   const handleCloseModal = () => { setIsModalOpen(false); setSelectedDish(null); };
 
-  // ===== Анимация колеса с 6 оборотами =====
   useEffect(() => {
-    const totalRotation = 360 * 6; // 6 полных оборотов
-    const duration = 10000; // 10 секунд
+    const totalRotation = 360 * 6; 
+    const duration = 10000;
     let startTime: number | null = null;
     let animationFrame: number;
 
@@ -92,10 +91,9 @@ export default function Home() {
       if (t < 1) {
         animationFrame = requestAnimationFrame(animate);
       } else {
-        // Возвращаем колесо на исходное положение
         rotation.current = 0;
         if (imgRef.current) imgRef.current.style.transform = `rotate(0deg)`;
-        // Запускаем снова через минуту
+
         setTimeout(() => requestAnimationFrame((t) => animate(t)), 60000);
       }
     };
@@ -107,7 +105,6 @@ export default function Home() {
   return (
     <div className="relative w-full min-h-screen bg-[#130F30] overflow-x-hidden">
 
-      {/* Фоны */}
       <div className="absolute bg-[#A020F0] blur-[200px] opacity-40 rounded-full w-[120%] h-[50%] top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-90" />
       <div className="absolute bg-[#A020F0] blur-[150px] opacity-40 rounded-full w-[80%] h-[60%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
 
@@ -118,7 +115,6 @@ export default function Home() {
             <p className="text-gray-300 text-sm md:text-base">Выберите категорию и блюдо</p>
           </div>
 
-          {/* Колесо фортуны */}
           <button
             onClick={navigateToFortuneWheel}
             className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#8B23CB]/50 to-[#A020F0]/50 border border-white/20 backdrop-blur-md shadow-lg overflow-hidden"
@@ -153,7 +149,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Фиксированное меню корзины */}
       <div style={{
           position: "fixed",
           left: 0,
@@ -183,7 +178,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Модалка блюда */}
       {selectedDish && (
         <DishModal
           dish={selectedDish}
